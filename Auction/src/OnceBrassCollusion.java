@@ -138,7 +138,7 @@ public class OnceBrassCollusion {
 
                 assert (profitBuyerInCurrentRound[indexOfWinnerInRanking]<0.0000001);
 
-                profitBuyerInCurrentRound[i]=profitBuyer;
+                profitBuyerInCurrentRound[indexOfWinnerInRanking]=profitBuyer;
             }
 
 
