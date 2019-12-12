@@ -61,7 +61,7 @@ public class OnceBrassCollusion {
     private class Simulation {
         private final double sMax;
         private final BiddingStrategy[] bss;
-        private final double[][] biddingFactor;
+        private double[][] biddingFactor;
         private final int r;
         private final int n;
         private final boolean pure;
@@ -116,6 +116,7 @@ public class OnceBrassCollusion {
                 double[] profitSellerInCurrentRound = profitSellerInRoundR[r_i];
                 double[] profitBuyerInCurrentRound = profitBuyerInRoundR[r_i];
                 determineWinnerAndCalculateProfit(stuffToBuyStartingPrice,markedPrices,bidsPerItem,profitBuyerInCurrentRound,profitSellerInCurrentRound,pure,e);
+                updateBiddingFactor();
             }
             //calc total profit
             for (int n_i = 0; n_i < n; n_i++) {
@@ -314,6 +315,28 @@ public class OnceBrassCollusion {
             }
             System.out.println();
             System.out.println();
+        }
+
+        private void updateBiddingFactor()
+        {
+            double bidDecreaseFactor = 0.8;
+            double bidIncreaseFactor = 1.2;
+
+            for (int i = 0; i < bss.length; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    // if buyer i won from seller n   or   the bid was higher than the avg price
+                    if(false)
+                    {
+                        biddingFactor[i][j] *= bidDecreaseFactor;
+                    }
+                    else
+                    {
+                        biddingFactor[i][j] *= bidIncreaseFactor;
+                    }
+                }
+            }
         }
     }
 
