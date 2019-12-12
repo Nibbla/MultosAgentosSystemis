@@ -1,6 +1,4 @@
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -65,6 +63,8 @@ public class OnceBrassCollusion {
         private final BiddingStrategy[] bss;
         private final int r;
         private final int n;
+        private final boolean pure;
+        private final double e; //punishment factor
         double[][] profitSellerInRoundR;
         double[][] profitBuyerInRoundR;
 
@@ -75,6 +75,8 @@ public class OnceBrassCollusion {
             profitSellerInRoundR = new double[r][n];
             profitBuyerInRoundR = new double[r][bs.length];
             this.r = r;
+            this.pure = pure;
+            this.e = e;
 
         }
 
@@ -87,7 +89,7 @@ public class OnceBrassCollusion {
 
                 double[] profitSellerInCurrentRound = profitSellerInRoundR[r_i];
                 double[] profitBuyerInCurrentRound = profitBuyerInRoundR[r_i];
-                determineWinnerAndCalculateProfit(markedPrices,bidsPerItem,profitBuyerInCurrentRound,profitSellerInCurrentRound);
+                determineWinnerAndCalculateProfit(markedPrices,bidsPerItem,profitBuyerInCurrentRound,profitSellerInCurrentRound,pure,e);
             }
 
         }
@@ -113,13 +115,17 @@ public class OnceBrassCollusion {
             return order;
         }
 
-        private void determineWinnerAndCalculateProfit(double[] markedPrices, double[][] bidsPerItem, double[] profitBuyerInCurrentRound, double[] profitSellerInCurrentRound) {
+        private void determineWinnerAndCalculateProfit(double[] markedPrices, double[][] bidsPerItem, double[] profitBuyerInCurrentRound, double[] profitSellerInCurrentRound, boolean pure, double e) {
             int numberBuyers = bidsPerItem[0].length;
             boolean[] hasPlayerWonInThisRound = new boolean[numberBuyers];
-            int numberOfSellers = markedPrices.length;
+            int[] fromWichSellerDidBuyerBuy = new int[numberBuyers];
+            for (int i = 0; i < numberBuyers; i++) fromWichSellerDidBuyerBuy[i]=-1;
 
+            int numberOfSellers = markedPrices.length;
+            Iterator<Integer> it = createSellOrder(numberOfSellers);
             //determine winner for one round
-            for (int i = 0; i < numberOfSellers; i++) {
+            while(it.hasNext()){
+                int i = it.next();
                 double[] bidsOfParticularItem = bidsPerItem[i];
                 double marketPriceOfParticularItem = markedPrices[i];
 
@@ -129,19 +135,50 @@ public class OnceBrassCollusion {
                 //iterate through the ranking until winner is reached
                 int indexOfWinnerInRanking = 0;
                 while (bidsOfParticularItem[ranking[indexOfWinnerInRanking]] > marketPriceOfParticularItem ||
-                    hasPlayerWonInThisRound[indexOfWinnerInRanking])indexOfWinnerInRanking++;
+                    !winnerWantsItem(pure,hasPlayerWonInThisRound[indexOfWinnerInRanking],profitBuyerInCurrentRound[indexOfWinnerInRanking],bidsOfParticularItem[ranking[indexOfWinnerInRanking+1]],e))
+                    indexOfWinnerInRanking++;
                 //we have a winner
                 double payPrice = bidsOfParticularItem[ranking[indexOfWinnerInRanking+1]];
+                assert (profitSellerInCurrentRound[i]<0.000001);
+                if (pure){
+                    profitSellerInCurrentRound[i]=payPrice;
+                    double profitBuyer = marketPriceOfParticularItem-payPrice;
+                    assert (profitBuyerInCurrentRound[indexOfWinnerInRanking]<0.0000001);
+                    profitBuyerInCurrentRound[indexOfWinnerInRanking]=profitBuyer;
+
+                }else {
+                    if (hasPlayerWonInThisRound[indexOfWinnerInRanking]){
+
+                        double punish = profitBuyerInCurrentRound[indexOfWinnerInRanking]*e;
+                        profitBuyerInCurrentRound[indexOfWinnerInRanking] = payPrice-punish;
+                        profitSellerInCurrentRound[indexOfWinnerInRanking] = payPrice;
+                        profitSellerInCurrentRound[fromWichSellerDidBuyerBuy[indexOfWinnerInRanking]] = punish;
+                    }else{
+                        profitBuyerInCurrentRound[indexOfWinnerInRanking] = payPrice;
+                        profitSellerInCurrentRound[indexOfWinnerInRanking] = payPrice;
+                    }
+                    fromWichSellerDidBuyerBuy[indexOfWinnerInRanking] = i;
+                }
+
                 hasPlayerWonInThisRound[indexOfWinnerInRanking] = true;
-                profitSellerInCurrentRound[i]+=payPrice;
-                double profitBuyer = marketPriceOfParticularItem-payPrice;
-
-                assert (profitBuyerInCurrentRound[indexOfWinnerInRanking]<0.0000001);
-
-                profitBuyerInCurrentRound[indexOfWinnerInRanking]=profitBuyer;
             }
 
 
+        }
+
+        private boolean winnerWantsItem(boolean pure, boolean hasPlayerWonInThisRound, double oldProfit, double newProfit, double e) {
+            if (pure) return !hasPlayerWonInThisRound;
+
+            //slightly different then description, but my profit includes my punishment, otherwise its stupid
+            if (oldProfit>(newProfit-e*oldProfit))return false;
+            return true;
+        }
+
+        private Iterator createSellOrder(int numberOfSellers) {
+            ArrayList<Integer> a = new ArrayList<>(numberOfSellers);
+            for (int i = 0; i < numberOfSellers; i++) a.add(i);
+            Collections.shuffle(a);
+            return a.iterator();
         }
 
         private double[] calcMarketPrices(double[][] bidsPerItem) {
