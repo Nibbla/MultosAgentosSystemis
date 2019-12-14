@@ -1,4 +1,3 @@
-import javafx.util.Pair;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -454,9 +453,9 @@ public class OnceBrassCollusion {
                 b.makeBid(item,r_i,e);
             }
 
-            Pair<Buyer,Double> pbb = determineWinnerAndPriceToPay(item);
-            double payPrice = pbb.getValue();
-            Buyer buyer = pbb.getKey();
+            ReturnObject pbb = determineWinnerAndPriceToPay(item);
+            double payPrice = pbb.getPrice();
+            Buyer buyer = pbb.getBuyer();
             Item oldItem = buyer.checkInventory(r_i);
             if (oldItem!=null){
                 if (print) System.out.println("buyer returns old item");
@@ -467,7 +466,7 @@ public class OnceBrassCollusion {
             //we have a winner
         }
 
-        private Pair<Buyer, Double> determineWinnerAndPriceToPay(Item item) {
+        private ReturnObject determineWinnerAndPriceToPay(Item item) {
             Buyer finalBuyer = null;
             Double finalPrice = null;
             double mp = item.getMarketPrice();
@@ -496,11 +495,27 @@ public class OnceBrassCollusion {
             if (finalBuyer==null||finalPrice==null){
                 System.out.println("no winner could be determined");
             }
-            return new Pair<>(finalBuyer, finalPrice);
+            return new ReturnObject(finalBuyer, finalPrice);
         }
 
 
+        private class ReturnObject {
+            private final Double finalPrice;
+            private final Buyer finalBuyer;
 
+            public ReturnObject(Buyer finalBuyer, Double finalPrice) {
+                this.finalBuyer = finalBuyer;
+                this.finalPrice = finalPrice;
+            }
+
+            public double getPrice() {
+                return finalPrice;
+            }
+
+            public Buyer getBuyer() {
+                return finalBuyer;
+            }
+        }
     }
 
     private static class Bid implements Comparable{
