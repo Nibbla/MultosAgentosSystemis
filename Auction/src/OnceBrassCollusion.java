@@ -41,7 +41,8 @@ public class OnceBrassCollusion {
                     BiddingStrategy[] bs2 = BiddingStrategy.getUniformSelection(k);
                     BiddingStrategy[] bs3 = BiddingStrategy.compareTwoStrategies(BiddingStrategy.Version1,BiddingStrategy.Version2,k);
 
-                    Simulation s = new Simulation(bs2,n,k,r,sMax,e,pure,count);
+                    boolean startingPriceRandom = false;
+                    Simulation s = new Simulation(bs1,n,k,r,sMax,e,pure,count,startingPriceRandom);
                     s.printout();
                     count++;
                 }
@@ -83,13 +84,13 @@ public class OnceBrassCollusion {
 
 
 
-        public Simulation(BiddingStrategy[] bs, int n, int k, int r, double sMax, double e, boolean pure, int count) {
+        public Simulation(BiddingStrategy[] bs, int n, int k, int r, double sMax, double e, boolean pure, int count, boolean startingPriceRandom) {
             this.sMax = sMax;
             this.bss = bs;
             this.n = n;
             this.k = k;
 
-            this.sellers = createSellers(k,r,sMax);
+            this.sellers = createSellers(k,r,sMax,startingPriceRandom);
             this.buyers = createBuyers(n,r,bs);
             this.r = r;
             this.pure = pure;
@@ -179,10 +180,10 @@ public class OnceBrassCollusion {
 
     }
 
-    private Seller[] createSellers(int numerberSellers, int r, double maximumStartingPrice) {
+    private Seller[] createSellers(int numerberSellers, int r, double maximumStartingPrice, boolean startingPriceRandom) {
         Seller[] b = new Seller[numerberSellers];
         for (int index = 0; index < numerberSellers; index++) {
-            b[index] = new Seller(index,r,maximumStartingPrice);
+            b[index] = new Seller(index,r,maximumStartingPrice,startingPriceRandom);
         }
         return b;
     }
@@ -277,13 +278,15 @@ public class OnceBrassCollusion {
 
         private final Item[] items;
         private final double maximumStartingPrice;
+        private boolean startingPriceRandom;
         ;
 
-        private Seller(int sellerIndex, int r, double maximumStartingPrice){
+        private Seller(int sellerIndex, int r, double maximumStartingPrice, boolean startingPriceRandom){
             this.sellerIndex = sellerIndex;
             profitInRoundR = new double[r];
             feeInRoundR = new double[r];
             items = createItems(r);
+            this.startingPriceRandom = startingPriceRandom;
             this.maximumStartingPrice = maximumStartingPrice;
 
         }
@@ -305,7 +308,9 @@ public class OnceBrassCollusion {
 
         public Item offerItem(int r){
             Item item = items[r];
-            item.setStartingPrice(rng.nextDouble()*maximumStartingPrice); //here we can adjust if for example last item was returned, increase price (but wouldnt that mean no reason to lower the price???)
+            if (startingPriceRandom)item.setStartingPrice(rng.nextDouble()*maximumStartingPrice); //here we can adjust if for example last item was returned, increase price (but wouldnt that mean no reason to lower the price???)
+            else item.setStartingPrice(maximumStartingPrice);
+
             return item;
         }
 
