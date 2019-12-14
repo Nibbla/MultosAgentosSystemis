@@ -29,7 +29,7 @@ public class OnceBrassCollusion {
         int maxR = 10;
 
         double sMax = 1000;
-        double e = 1.;
+        double e = 0.1;
         boolean pure = false;
 
 
