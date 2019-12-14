@@ -1,4 +1,7 @@
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -10,12 +13,26 @@ public class OnceBrassCollusion {
     public static Random rng;
     public static boolean print;
 
+    public static BufferedWriter writer;
+
     public static void main(String[] args){
+        try {
+            writer = new BufferedWriter(new FileWriter("BiddingFactor.csv"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         print = true;
         OnceBrassCollusion.setRandomNumberGenerator(new Random(1));
         OnceBrassCollusion obc = new OnceBrassCollusion();
 
         obc.doAllExperiments();
+
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void doAllExperiments() {
@@ -34,7 +51,12 @@ public class OnceBrassCollusion {
 
 
         int count = 0;
-        for (int k = minK; k <= maxK; k++) {
+
+        BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,6);
+        StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
+        Simulation s = new Simulation(bs1,6,6,100,sMax,e,pure,count,sps2);
+
+        /*for (int k = minK; k <= maxK; k++) {
             for (int n = minN; n <= maxN; n = increase(n, threasholdNIncrement, incrementalFactorN)) {
                 for (int r = minR; r < maxR; r = increase(r, 1, 1.5)) {
                     BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,n);
@@ -45,12 +67,13 @@ public class OnceBrassCollusion {
                     StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
                     StartingPriceStrategy sps3 = StartingPriceStrategy.random;
                     Simulation s = new Simulation(bs1,n,k,r,sMax,e,pure,count,sps2);
+
                     s.printout();
                     count++;
                 }
             }
 
-        }
+        }*/
     }
 
 
@@ -113,6 +136,25 @@ public class OnceBrassCollusion {
             }
             if (print)System.out.println();
             for (int r_i = 0; r_i < r; r_i++) { //for each round
+                try {
+                    writer.write("" + r_i);
+
+                    for (int i = 0; i < sellers.length; i++)
+                    {
+                        double sum = 0;
+                        for (Buyer b : buyers) {
+                            sum += b.biddingFactor[i];
+                        }
+                        writer.write("," + (sum / sellers.length));
+                    }
+
+                    writer.write("\n");
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
                 if (print) {
                     System.out.println("This shall be round " + r_i);
                     System.out.println();
@@ -398,6 +440,11 @@ public class OnceBrassCollusion {
                 biddingFactor[s.sellerIndex] *= bidDecreaseFactor;
             }else{
                 biddingFactor[s.sellerIndex] *= bidIncreaseFactor;
+            }
+
+            if(biddingFactor[s.sellerIndex] < 1)
+            {
+                biddingFactor[s.sellerIndex] = 1;
             }
         }
     }
