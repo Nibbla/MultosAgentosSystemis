@@ -13,11 +13,13 @@ public class OnceBrassCollusion {
     public static Random rng;
     public static boolean print;
 
-    public static BufferedWriter writer;
+    public static BufferedWriter BiddingFactorWriter;
+    public static BufferedWriter ProfitWriter;
 
     public static void main(String[] args){
         try {
-            writer = new BufferedWriter(new FileWriter("BiddingFactor.csv"));
+            BiddingFactorWriter = new BufferedWriter(new FileWriter("BiddingFactor.csv"));
+            ProfitWriter = new BufferedWriter(new FileWriter("Profit.csv"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -29,7 +31,8 @@ public class OnceBrassCollusion {
         obc.doAllExperiments();
 
         try {
-            writer.close();
+            BiddingFactorWriter.close();
+            ProfitWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -137,7 +140,7 @@ public class OnceBrassCollusion {
             if (print)System.out.println();
             for (int r_i = 0; r_i < r; r_i++) { //for each round
                 try {
-                    writer.write("" + r_i);
+                    BiddingFactorWriter.write("" + r_i);
 
                     for (int i = 0; i < sellers.length; i++)
                     {
@@ -145,10 +148,10 @@ public class OnceBrassCollusion {
                         for (Buyer b : buyers) {
                             sum += b.biddingFactor[i];
                         }
-                        writer.write("," + (sum / sellers.length));
+                        BiddingFactorWriter.write("," + (sum / sellers.length));
                     }
 
-                    writer.write("\n");
+                    BiddingFactorWriter.write("\n");
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -162,6 +165,24 @@ public class OnceBrassCollusion {
 
                 bettingRound( r_i, sellers,  buyers,  pure,  e);
 
+                try {
+                    ProfitWriter.write("" + r_i);
+
+                    for (Seller s : sellers)
+                    {
+                        ProfitWriter.write("," + (s.profitInRoundR[r_i] + s.feeInRoundR[r_i]));
+                    }
+
+                    for (Buyer b : buyers)
+                    {
+                        ProfitWriter.write("," + (b.profitInRoundR[r_i] - b.feeInRoundR[r_i]));
+                    }
+
+                    ProfitWriter.write("\n");
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
 
 
