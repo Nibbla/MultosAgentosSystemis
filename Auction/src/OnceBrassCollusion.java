@@ -41,7 +41,7 @@ public class OnceBrassCollusion {
                     BiddingStrategy[] bs2 = BiddingStrategy.getUniformSelection(k);
                     BiddingStrategy[] bs3 = BiddingStrategy.compareTwoStrategies(BiddingStrategy.Version1,BiddingStrategy.Version2,k);
 
-                    Simulation s = new Simulation(bs1,n,k,r,sMax,e,pure,count);
+                    Simulation s = new Simulation(bs2,n,k,r,sMax,e,pure,count);
                     s.printout();
                     count++;
                 }
@@ -104,6 +104,10 @@ public class OnceBrassCollusion {
         public void simulate(boolean pure, double e) {
             if (print)System.out.println("Start simulation: NumberSellers: " + k + " NumberBuyers: " + n + " pure: " + pure);
             if (print)System.out.println("NumberRounds: " + r + " ErrorFactor: " + e);
+            for (int i = 0; i < buyers.length; i++) {
+                Buyer b = buyers[i];
+                System.out.println("Buyer: " + i + " IncreaseFactor: " + b.biddingStrategy.getIncreaseFactor() + " DecreaseFactor: " + b.biddingStrategy.getDecreaseFactor());
+            }
             if (print)System.out.println();
             for (int r_i = 0; r_i < r; r_i++) { //for each round
                 if (print) {
