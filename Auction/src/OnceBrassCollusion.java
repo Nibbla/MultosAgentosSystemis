@@ -194,7 +194,7 @@ public class OnceBrassCollusion {
 
 
     private enum BiddingStrategy {
-        Version1{
+        Version1(0.8,1.2){
             @Override
             public Bid bid(Buyer buyer, Item item, double e, int r_i) {
                 Item i = buyer.checkInventory(r_i);
@@ -208,22 +208,29 @@ public class OnceBrassCollusion {
                 }
                 return new Bid(value, buyer);
             }
-        },Version2{
+
+
+        },Version2(0.9,1.1){
             @Override
             public Bid bid(Buyer buyer, Item item, double e, int r_i) {
-                Bid b;
-                if (buyer.inventory[r_i]!=null) b = new Bid(0,buyer);
-                b = new Bid(item.startingPrice, buyer);
-                return b;
+                return Version1.bid(buyer, item, e, r_i);
             }
-        },Version3{
+        },Version3(0.7,1.1){
             @Override
             public Bid bid(Buyer buyer, Item item, double e, int r_i) {
-                return Version2.bid(buyer, item, e, r_i);
+                return Version1.bid(buyer, item, e, r_i);
             }
         };
 
-        public static BiddingStrategy[] compareTwoStrategies(BiddingStrategy b1,BiddingStrategy b2, int k){
+        private final double decrease;
+        private final double increse;
+
+        BiddingStrategy(double decrease, double increase) {
+            this.decrease = decrease;
+            this.increse = increase;
+        }
+
+        public static BiddingStrategy[] compareTwoStrategies(BiddingStrategy b1, BiddingStrategy b2, int k){
             BiddingStrategy[] bsa = new BiddingStrategy[k];
             boolean flip =true;
             for (int i = 0; i < k; i++) {
@@ -248,6 +255,14 @@ public class OnceBrassCollusion {
         }
 
         public abstract Bid bid(Buyer buyer, Item item, double e, int r_i);
+
+        public double getDecreaseFactor(){
+            return decrease;
+        }
+
+        public double getIncreaseFactor(){
+            return increse;
+        }
     }
 
 
@@ -344,8 +359,8 @@ public class OnceBrassCollusion {
 
 
         public void adjustBiddingFactor(Item item, int r_i) {
-            double bidDecreaseFactor = 0.8;
-            double bidIncreaseFactor = 1.2;
+            double bidDecreaseFactor = this.biddingStrategy.getDecreaseFactor();
+            double bidIncreaseFactor = this.biddingStrategy.getIncreaseFactor();
 
             Bid bidOfBuyer = item.getBidOfBuyer(this);
             if (bidOfBuyer==null){
