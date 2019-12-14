@@ -41,8 +41,10 @@ public class OnceBrassCollusion {
                     BiddingStrategy[] bs2 = BiddingStrategy.getUniformSelection(k);
                     BiddingStrategy[] bs3 = BiddingStrategy.compareTwoStrategies(BiddingStrategy.Version1,BiddingStrategy.Version2,k);
 
-                    boolean startingPriceRandom = false;
-                    Simulation s = new Simulation(bs1,n,k,r,sMax,e,pure,count,startingPriceRandom);
+                    StartingPriceStrategy sps1 = StartingPriceStrategy.alwaysMaximum;
+                    StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
+                    StartingPriceStrategy sps3 = StartingPriceStrategy.random;
+                    Simulation s = new Simulation(bs1,n,k,r,sMax,e,pure,count,sps2);
                     s.printout();
                     count++;
                 }
@@ -84,13 +86,13 @@ public class OnceBrassCollusion {
 
 
 
-        public Simulation(BiddingStrategy[] bs, int n, int k, int r, double sMax, double e, boolean pure, int count, boolean startingPriceRandom) {
+        public Simulation(BiddingStrategy[] bs, int n, int k, int r, double sMax, double e, boolean pure, int count, StartingPriceStrategy sps) {
             this.sMax = sMax;
             this.bss = bs;
             this.n = n;
             this.k = k;
 
-            this.sellers = createSellers(k,r,sMax,startingPriceRandom);
+            this.sellers = createSellers(k,r,sMax,sps);
             this.buyers = createBuyers(n,r,bs);
             this.r = r;
             this.pure = pure;
@@ -180,10 +182,10 @@ public class OnceBrassCollusion {
 
     }
 
-    private Seller[] createSellers(int numerberSellers, int r, double maximumStartingPrice, boolean startingPriceRandom) {
+    private Seller[] createSellers(int numerberSellers, int r, double maximumStartingPrice, StartingPriceStrategy sps) {
         Seller[] b = new Seller[numerberSellers];
         for (int index = 0; index < numerberSellers; index++) {
-            b[index] = new Seller(index,r,maximumStartingPrice,startingPriceRandom);
+            b[index] = new Seller(index,r,maximumStartingPrice,sps);
         }
         return b;
     }
@@ -278,15 +280,15 @@ public class OnceBrassCollusion {
 
         private final Item[] items;
         private final double maximumStartingPrice;
-        private boolean startingPriceRandom;
+        private StartingPriceStrategy startingPriceStrategy;
         ;
 
-        private Seller(int sellerIndex, int r, double maximumStartingPrice, boolean startingPriceRandom){
+        private Seller(int sellerIndex, int r, double maximumStartingPrice, StartingPriceStrategy startingPriceStrategy){
             this.sellerIndex = sellerIndex;
             profitInRoundR = new double[r];
             feeInRoundR = new double[r];
             items = createItems(r);
-            this.startingPriceRandom = startingPriceRandom;
+            this.startingPriceStrategy = startingPriceStrategy;
             this.maximumStartingPrice = maximumStartingPrice;
 
         }
@@ -307,9 +309,24 @@ public class OnceBrassCollusion {
         }
 
         public Item offerItem(int r){
+
             Item item = items[r];
-            if (startingPriceRandom)item.setStartingPrice(rng.nextDouble()*maximumStartingPrice); //here we can adjust if for example last item was returned, increase price (but wouldnt that mean no reason to lower the price???)
-            else item.setStartingPrice(maximumStartingPrice);
+            switch (startingPriceStrategy){
+
+                case random:
+                    item.setStartingPrice(rng.nextDouble()*maximumStartingPrice); //here we can adjust if for example last item was returned, increase price (but wouldnt that mean no reason to lower the price???)
+                    break;
+                case alwaysMaximum:
+                    item.setStartingPrice(maximumStartingPrice);
+                    break;
+                case increaseEveryRound:
+                    double rounds = items.length;
+                    double factor = (r+1)/rounds;
+                    item.setStartingPrice(maximumStartingPrice*0.9 + 0.1*factor*maximumStartingPrice);
+                    break;
+            }
+
+
 
             return item;
         }
@@ -559,5 +576,9 @@ public class OnceBrassCollusion {
             if (this.value<b2.value)return 1;
             return 0;
         }
+    }
+
+    private enum  StartingPriceStrategy {
+        random, alwaysMaximum, increaseEveryRound
     }
 }
