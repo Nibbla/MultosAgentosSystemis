@@ -24,7 +24,7 @@ public class OnceBrassCollusion {
             e.printStackTrace();
         }
 
-        print = false;
+        print = true;
         OnceBrassCollusion.setRandomNumberGenerator(new Random(1));
         OnceBrassCollusion obc = new OnceBrassCollusion();
 
@@ -50,7 +50,7 @@ public class OnceBrassCollusion {
 
         double sMax = 1000;
         double e = 0.1;
-        boolean pure = false;
+        boolean pure = true;
 
 
         int count = 0;
@@ -289,7 +289,7 @@ public class OnceBrassCollusion {
             public Bid bid(Buyer buyer, Item item, double e, int r_i) {
                 return Version1.bid(buyer, item, e, r_i);
             }
-        },Version3(0.7,1.1){
+        },Version3(0.7,1.3){
             @Override
             public Bid bid(Buyer buyer, Item item, double e, int r_i) {
                 return Version1.bid(buyer, item, e, r_i);
