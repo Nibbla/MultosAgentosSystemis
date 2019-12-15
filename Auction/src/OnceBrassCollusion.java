@@ -55,9 +55,11 @@ public class OnceBrassCollusion {
 
         int count = 0;
 
-        BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,6);
+        int n = 6;
+        int k = 10;
+        BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,n);
         StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
-        Simulation s = new Simulation(bs1,6,6,100,sMax,e,pure,count,sps2);
+        Simulation s = new Simulation(bs1,n,k,100,sMax,e,pure,count,sps2);
 
         /*for (int k = minK; k <= maxK; k++) {
             for (int n = minN; n <= maxN; n = increase(n, threasholdNIncrement, incrementalFactorN)) {
@@ -119,7 +121,7 @@ public class OnceBrassCollusion {
             this.k = k;
 
             this.sellers = createSellers(k,r,sMax,sps);
-            this.buyers = createBuyers(n,r,bs);
+            this.buyers = createBuyers(n,k,r,bs);
             this.r = r;
             this.pure = pure;
             this.e = e;
@@ -253,10 +255,10 @@ public class OnceBrassCollusion {
         return b;
     }
 
-    private Buyer[] createBuyers(int n, int r, BiddingStrategy[] bs) {
+    private Buyer[] createBuyers(int n, int k,int r, BiddingStrategy[] bs) {
         Buyer[] b = new Buyer[n];
         for (int index = 0; index < n; index++) {
-            b[index] = new Buyer(index,r,n,bs[index]);
+            b[index] = new Buyer(index,r,k,bs[index]);
         }
         return b;
     }
@@ -309,9 +311,9 @@ public class OnceBrassCollusion {
             }
             return bsa;
         }
-        public static BiddingStrategy[] getAllOfOneType(BiddingStrategy bs, int k){
-            BiddingStrategy[] bsa = new BiddingStrategy[k];
-            for (int i = 0; i < k; i++) {
+        public static BiddingStrategy[] getAllOfOneType(BiddingStrategy bs, int n){
+            BiddingStrategy[] bsa = new BiddingStrategy[n];
+            for (int i = 0; i < n; i++) {
                 bsa[i] = bs;
             }
             return bsa;
