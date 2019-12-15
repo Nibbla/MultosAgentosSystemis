@@ -24,7 +24,7 @@ public class OnceBrassCollusion {
             e.printStackTrace();
         }
 
-        print = true;
+        print = false;
         OnceBrassCollusion.setRandomNumberGenerator(new Random(1));
         OnceBrassCollusion obc = new OnceBrassCollusion();
 
@@ -55,8 +55,8 @@ public class OnceBrassCollusion {
 
         int count = 0;
 
-        int n = 6;
-        int k = 6;
+        int n = 10;
+        int k = 10;
         BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,n);
         StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
         Simulation s = new Simulation(bs1,n,k,100,sMax,e,pure,count,sps2);
@@ -166,7 +166,7 @@ public class OnceBrassCollusion {
                 }
 
                 bettingRound( r_i, sellers,  buyers,  pure,  e);
-                //System.out.println(buyers[0].profitInRoundR[r_i]-buyers[0].feeInRoundR[r_i]);
+               // System.out.println(buyers[0].feeInRoundR[r_i]);
                 //System.out.println("totalProf: " + buyers[0].getTotalProfit());
                 try {
                     ProfitWriter.write("" + r_i);
@@ -432,9 +432,9 @@ public class OnceBrassCollusion {
         private double[] createBiddingFactor(int numberSellers) {
             double[] biddinFactor = new double[numberSellers];
 
-                for (int j = 0; j < numberSellers; j++) {
-                    biddinFactor[j] = rng.nextDouble()*4+1; //it doesnt make sense to bid less then the starting price
-                }
+            for (int j = 0; j < numberSellers; j++) {
+                biddinFactor[j] = rng.nextDouble()*4+1; //it doesnt make sense to bid less then the starting price
+            }
 
             return biddinFactor;
         }
@@ -509,6 +509,7 @@ public class OnceBrassCollusion {
 
             this.price = price;
             this.buyer = buyer;
+            buyer.inventory[r_i] = this;
             seller.profitInRoundR[r_i] += price;
             buyer.profitInRoundR[r_i] += (this.marketPrice-price);
         }
@@ -529,13 +530,15 @@ public class OnceBrassCollusion {
 
         public void returnItem(double errorFactor,int r_i) {
             returned = true;
-            buyer = null;
-
             double fee = getFee(errorFactor);
-            seller.profitInRoundR[r_i] = 0; //as there can only be one item, setting profit to 0 should suffice
-            seller.feeInRoundR[r_i] += fee;
             buyer.profitInRoundR[r_i] = 0;
             buyer.feeInRoundR[r_i] += fee;
+            buyer = null;
+
+
+            seller.profitInRoundR[r_i] = 0; //as there can only be one item, setting profit to 0 should suffice
+            seller.feeInRoundR[r_i] += fee;
+
 
 
         }
