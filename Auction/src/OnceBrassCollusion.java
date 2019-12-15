@@ -279,6 +279,7 @@ public class OnceBrassCollusion {
                 if (i!=null){
                     value -= i.getFee(e)+buyer.getProfitInRoundR(r_i);
                 }
+                if (value<0)return null;
                 return new Bid(value, buyer);
             }
 
@@ -441,6 +442,7 @@ public class OnceBrassCollusion {
 
         public void makeBid(Item item, int r_i, double e) {
            Bid b = biddingStrategy.bid(this,item,e,r_i);
+           if (b == null)return;
            item.recieveBid(b);
 
         }
