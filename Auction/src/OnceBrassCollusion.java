@@ -56,7 +56,7 @@ public class OnceBrassCollusion {
         int count = 0;
 
         int n = 6;
-        int k = 10;
+        int k = 6;
         BiddingStrategy[] bs1 = BiddingStrategy.getAllOfOneType(BiddingStrategy.Version1,n);
         StartingPriceStrategy sps2 = StartingPriceStrategy.increaseEveryRound;
         Simulation s = new Simulation(bs1,n,k,100,sMax,e,pure,count,sps2);
@@ -137,7 +137,7 @@ public class OnceBrassCollusion {
             if (print)System.out.println("NumberRounds: " + r + " ErrorFactor: " + e);
             for (int i = 0; i < buyers.length; i++) {
                 Buyer b = buyers[i];
-                System.out.println("Buyer: " + i + " IncreaseFactor: " + b.biddingStrategy.getIncreaseFactor() + " DecreaseFactor: " + b.biddingStrategy.getDecreaseFactor());
+                System.out.println("Buyer: " + b.index + " IncreaseFactor: " + b.biddingStrategy.getIncreaseFactor() + " DecreaseFactor: " + b.biddingStrategy.getDecreaseFactor());
             }
             if (print)System.out.println();
             for (int r_i = 0; r_i < r; r_i++) { //for each round
@@ -166,7 +166,8 @@ public class OnceBrassCollusion {
                 }
 
                 bettingRound( r_i, sellers,  buyers,  pure,  e);
-
+                //System.out.println(buyers[0].profitInRoundR[r_i]-buyers[0].feeInRoundR[r_i]);
+                //System.out.println("totalProf: " + buyers[0].getTotalProfit());
                 try {
                     ProfitWriter.write("" + r_i);
 
@@ -552,8 +553,9 @@ public class OnceBrassCollusion {
     }
 
     private static class Auction {
-        public Auction(Buyer[] buyers, Item item, int r_i, boolean pure, double e) {
+        public Auction(Buyer[] buyersSrc, Item item, int r_i, boolean pure, double e) {
             //recieve Bids
+            Buyer[] buyers = buyersSrc.clone();
             List<Buyer> buyerList = Arrays.asList(buyers);
             Collections.shuffle(buyerList);
             for (Buyer b:buyerList) {
@@ -594,7 +596,7 @@ public class OnceBrassCollusion {
                     nextBid = it.next();
                     finalPrice = nextBid.value;
                 }else {
-                    System.out.println("the last haz won");
+                    if (print)System.out.println("the last haz won");
                     //From Task description: Note that in case of only one (winning) bid is below market price,
                     // second highest bid is calculated as the average between the winning bid
                     // and the auction’s starting price.
